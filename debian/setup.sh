@@ -24,5 +24,6 @@ git -C "$SCRIPTS_DIR" pull || git clone https://github.com/jonasue20/scripts.git
 
 ln -sf $SCRIPTS_DIR/debian/justfile ~/justfile
 ln -sf $SCRIPTS_DIR/debian/.bash_aliases ~/.bash_aliases
+sudo ln -sf $SCRIPTS_DIR/debian/wsl.conf /etc/wsl.conf
 
 echo "Setup complete!"

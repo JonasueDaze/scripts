@@ -1,20 +1,31 @@
+home := env_var('HOME')
+
 # General use commands.
 
 # Adds the completion file to bash's completion system.
-add-completion file:
+@add-completion file:
   sudo mv {{file}} /usr/share/bash-completion/completions
+
+# Adds a line to environment files (bashrc and profile).
+@add-to-environment line:
+  LINE='{{line}}' && \
+  FILE='{{home}}/.bashrc' && \
+  grep -qF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+
+  LINE='{{line}}' && \
+  FILE='{{home}}/.profile' && \
+  grep -qF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 
 # Setup commands.
 
 # Setups git configs.
-git: 
+@git: 
   git config --global user.email "jonathan.ywahashi@gmail.com"
   git config --global user.name "Jonathan Takeshi Ywahashi"
   git config --global --add credential.helper cache
 
 # Setups neovim editor.
-nvim:
-  # Neovim setup.
+@nvim:
   curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
   chmod u+x nvim.appimage
   ./nvim.appimage --appimage-extract
@@ -24,15 +35,34 @@ nvim:
   sudo ln -sf /squashfs-root/AppRun /usr/bin/nvim
   rm nvim.appimage
 
-  # AstroNvim setup.
   DIR=~/.config/nvim && \
   git -C "$DIR" pull || git clone https://github.com/AstroNvim/AstroNvim "$DIR"
 
   DIR=~/.config/nvim/lua/user && \
   git -C "$DIR" pull || git clone https://github.com/jonasue20/astronvim-config.git "$DIR"
 
+# Setups docker tool.
+@docker:
+  sudo apt-get update
+  sudo apt-get install -y ca-certificates curl gnupg
+
+  sudo install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+  echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+  sudo apt-get update
+  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+  -sudo groupadd docker
+  sudo usermod -aG docker $USER
+
 # Setups dotnet environment.
-dotnet:
+@dotnet:
   curl -LO https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
   sudo dpkg -i packages-microsoft-prod.deb
   rm packages-microsoft-prod.deb
@@ -41,9 +71,31 @@ dotnet:
   sudo apt-get install -y dotnet-sdk-7.0
 
 # Setups node environment.
-node:
+@node:
   curl https://get.volta.sh | bash
   volta install node
   volta install pnpm
-  volta completions bash >volta 
+  volta completions bash > volta 
   just add-completion volta
+
+# Setups python environment.
+@python:
+  sudo apt-get update
+  sudo apt-get install -y build-essential libssl-dev zlib1g-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev curl \
+    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+  if [ ! -d "{{home}}/.pyenv" ]; then \
+    curl https://pyenv.run | bash; \
+  fi
+  just add-to-environment 'export PYENV_ROOT="$HOME/.pyenv"' 
+  just add-to-environment 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"'
+  just add-to-environment 'eval "$(pyenv init --path)"'
+  just add-to-environment 'eval "$(pyenv virtualenv-init -)"'
+
+  PYENV_ROOT="$HOME/.pyenv" && \
+  PATH="$PYENV_ROOT/bin:$PATH" && \
+  eval "$(pyenv init --path)" && \
+  eval "$(pyenv virtualenv-init -)" && \
+  pyenv install 3 && \
+  pyenv global 3
