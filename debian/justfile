@@ -6,6 +6,12 @@ add-completion file:
 
 # Setup commands.
 
+# Setups git configs.
+git: 
+  git config --global user.email "jonathan.ywahashi@gmail.com"
+  git config --global user.name "Jonathan Takeshi Ywahashi"
+  git config --global --add credential.helper cache
+
 # Setups neovim editor.
 nvim:
   # Neovim setup.
@@ -16,13 +22,23 @@ nvim:
   sudo rm -rf /squashfs-root
   sudo mv squashfs-root /
   sudo ln -sf /squashfs-root/AppRun /usr/bin/nvim
+  rm nvim.appimage
 
   # AstroNvim setup.
-  export DIR=~/.config/nvim && \
+  DIR=~/.config/nvim && \
   git -C "$DIR" pull || git clone https://github.com/AstroNvim/AstroNvim "$DIR"
 
-  export DIR=~/.config/nvim/lua/user && \
+  DIR=~/.config/nvim/lua/user && \
   git -C "$DIR" pull || git clone https://github.com/jonasue20/astronvim-config.git "$DIR"
+
+# Setups dotnet environment.
+dotnet:
+  curl -LO https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+  sudo dpkg -i packages-microsoft-prod.deb
+  rm packages-microsoft-prod.deb
+
+  sudo apt-get update && \
+  sudo apt-get install -y dotnet-sdk-7.0
 
 # Setups node environment.
 node:

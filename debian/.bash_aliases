@@ -1,6 +1,5 @@
-alias ll='ls -l'
-alias la='ls -a'
-alias l='ls -cf'
+alias ll='ls -la'
+alias l='ls'
 
 alias npm='pnpm'
 alias npx='pnpx'
