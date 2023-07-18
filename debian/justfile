@@ -1,0 +1,33 @@
+# General use commands.
+
+# Adds the completion file to bash's completion system.
+add-completion file:
+  sudo mv {{file}} /usr/share/bash-completion/completions
+
+# Setup commands.
+
+# Setups neovim editor.
+nvim:
+  # Neovim setup.
+  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+  chmod u+x nvim.appimage
+  ./nvim.appimage --appimage-extract
+  ./squashfs-root/AppRun --version
+  sudo rm -rf /squashfs-root
+  sudo mv squashfs-root /
+  sudo ln -sf /squashfs-root/AppRun /usr/bin/nvim
+
+  # AstroNvim setup.
+  export DIR=~/.config/nvim && \
+  git -C "$DIR" pull || git clone https://github.com/AstroNvim/AstroNvim "$DIR"
+
+  export DIR=~/.config/nvim/lua/user && \
+  git -C "$DIR" pull || git clone https://github.com/jonasue20/astronvim-config.git "$DIR"
+
+# Setups node environment.
+node:
+  curl https://get.volta.sh | bash
+  volta install node
+  volta install pnpm
+  volta completions bash >volta 
+  just add-completion volta
